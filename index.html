@@ -1,0 +1,225 @@
+
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ossain Store</title>
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; background:#f5f5f5; }
+    header { background:linear-gradient(90deg,#232f3e,#37475a); color:white; padding:1rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:1000; flex-wrap:wrap; }
+    header h1 { margin:0; font-size:1.5rem; cursor:pointer; }
+    .menu-btn { font-size:1.5rem; cursor:pointer; margin-right:1rem; }
+    .search { flex:1; margin:0 1rem; position:relative; min-width:200px; }
+    .search input { width:100%; padding:.6rem; border:none; border-radius:20px; }
+    .suggestions { position:absolute; top:45px; left:0; right:0; background:white; border:1px solid #ccc; border-radius:6px; max-height:200px; overflow-y:auto; display:none; z-index:100; }
+    .suggestions div { padding:.5rem; cursor:pointer; }
+    .suggestions div:hover { background:#f0f0f0; }
+    nav { display:flex; flex-wrap:wrap; justify-content:center; }
+    nav a { color:white; margin:.5rem; text-decoration:none; font-weight:bold; }
+    .categories { display:flex; gap:.5rem; padding:1rem; overflow-x:auto; background:white; border-bottom:1px solid #ddd; }
+    .categories button { background:#eee; border:none; padding:.5rem 1rem; border-radius:20px; cursor:pointer; transition:.3s; flex-shrink:0; }
+    .categories button:hover { background:#232f3e; color:white; }
+    .sidebar { position:fixed; top:0; left:-250px; width:250px; height:100%; background:#232f3e; color:white; padding:1rem; transition:.3s; z-index:2000; overflow-y:auto; }
+    .sidebar.open { left:0; }
+    .sidebar h2 { margin-top:0; font-size:1.3rem; }
+    .sidebar a { display:block; padding:.5rem 0; color:white; text-decoration:none; border-bottom:1px solid #37475a; }
+    .sidebar a:hover { color:#ffa41c; }
+    .overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; z-index:1500; }
+    .overlay.show { display:block; }
+    .hero { position:relative; overflow:hidden; height:200px; background:#ddd; }
+    .slide { position:absolute; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:white; transition:opacity 1s ease; opacity:0; }
+    .slide.active { opacity:1; }
+    .advert { background:linear-gradient(90deg,#ffa41c,#ff8c00); padding:1rem; color:white; text-align:center; font-weight:bold; animation:slide 8s infinite alternate; }
+    @keyframes slide { from{background-position:0%;} to{background-position:100%;} }
+    .products { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; padding:1rem; }
+    .card { background:white; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.1); padding:1rem; display:flex; flex-direction:column; align-items:center; transition:transform .2s, box-shadow .2s; }
+    .card:hover { transform:scale(1.03); box-shadow:0 4px 15px rgba(0,0,0,.2); }
+    .emoji { font-size:3rem; }
+    .card h3 { margin:.5rem 0; font-size:1.1rem; text-align:center; }
+    .price { color:#b12704; font-weight:bold; margin:.5rem 0; }
+    .actions { margin-top:auto; display:flex; gap:.5rem; width:100%; flex-wrap:wrap; }
+    button { flex:1; padding:.5rem; border:none; border-radius:6px; cursor:pointer; font-weight:bold; min-width:80px; }
+    .buy { background:#ffa41c; }
+    .cart { background:#f0c14b; }
+    #checkout-btn { display:block; margin:1rem auto; padding:.75rem 1.5rem; font-size:1rem; background:#ffa41c; border:none; border-radius:6px; cursor:pointer; }
+    footer { background:#232f3e; color:white; padding:2rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; text-align:center; }
+    footer h4 { margin-bottom:.5rem; }
+    footer a { color:#ffa41c; text-decoration:none; display:block; margin:.2rem 0; }
+    @media (max-width:600px){
+      header { flex-direction:column; align-items:flex-start; }
+      nav { justify-content:flex-start; }
+      .search { margin:.5rem 0; width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <div class="sidebar" id="sidebar">
+    <h2>Shop by Category</h2>
+    <a href="#" onclick="filterCategory('All')">All</a>
+    <a href="#" onclick="filterCategory('Fashion')">Fashion</a>
+    <a href="#" onclick="filterCategory('Electronics')">Electronics</a>
+    <a href="#" onclick="filterCategory('Home')">Home</a>
+    <a href="#" onclick="filterCategory('Beauty')">Beauty</a>
+    <a href="#" onclick="filterCategory('Sports')">Sports</a>
+  </div>  <header>
+    <span class="menu-btn" onclick="toggleSidebar()">☰</span>
+    <h1>Ossain</h1>
+    <div class="search">
+      <input type="text" id="searchBox" placeholder="Search products..." onkeyup="showSuggestions()" />
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+    <nav>
+      <a href="#">Deals</a>
+      <a href="#">Orders</a>
+      <a href="#">Cart (<span id="cart-count">0</span>)</a>
+    </nav>
+  </header>  <div class="hero" id="hero">
+    <div class="slide active" style="background:#37475a;">Welcome to Ossain Store 🚀</div>
+    <div class="slide" style="background:#ffa41c;">🔥 Mega Sales - Up to 50% OFF 🔥</div>
+    <div class="slide" style="background:#ff5733;">Shop Smart. Shop Ossain 🛒</div>
+  </div>  <div class="categories">
+    <button onclick="filterCategory('All')">All</button>
+    <button onclick="filterCategory('Fashion')">Fashion</button>
+    <button onclick="filterCategory('Electronics')">Electronics</button>
+    <button onclick="filterCategory('Home')">Home</button>
+    <button onclick="filterCategory('Beauty')">Beauty</button>
+    <button onclick="filterCategory('Sports')">Sports</button>
+  </div>  <div class="advert">🔥 Big Sale! Up to 50% off selected items. Shop now! 🔥</div>  <main>
+    <section class="products" id="product-list"></section>
+    <button id="checkout-btn" onclick="checkoutCart()">Checkout Cart</button>
+  </main>  <footer>
+    <div>
+      <h4>Get to Know Us</h4>
+      <a href="#">About Ossain</a>
+      <a href="#">Careers</a>
+    </div>
+    <div>
+      <h4>Customer Service</h4>
+      <a href="#">Help</a>
+      <a href="#">Returns</a>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p>📞 09058562478</p>
+      <p>✉️ hussainadedamolalawal@gmail.com</p>
+    </div>
+  </footer>  <script>
+    const products = [
+      {id:1, name:"Sneakers", price:25000, emoji:"👟", category:"Fashion"},
+      {id:2, name:"Smart Watch", price:40000, emoji:"⌚", category:"Electronics"},
+      {id:3, name:"Headphones", price:15000, emoji:"🎧", category:"Electronics"},
+      {id:4, name:"Backpack", price:10000, emoji:"🎒", category:"Fashion"},
+      {id:5, name:"Gaming Mouse", price:8000, emoji:"🖱️", category:"Electronics"},
+      {id:6, name:"Laptop", price:250000, emoji:"💻", category:"Electronics"},
+      {id:7, name:"Camera", price:320000, emoji:"📷", category:"Electronics"},
+      {id:8, name:"Office Chair", price:60000, emoji:"🪑", category:"Home"},
+      {id:9, name:"Sunglasses", price:7000, emoji:"🕶️", category:"Fashion"},
+      {id:10, name:"Perfume", price:12000, emoji:"💐", category:"Beauty"},
+      {id:11, name:"Football", price:15000, emoji:"⚽", category:"Sports"},
+      {id:12, name:"Dumbbells", price:20000, emoji:"🏋️", category:"Sports"},
+      {id:13, name:"Lipstick", price:8000, emoji:"💄", category:"Beauty"},
+      {id:14, name:"Bed", price:180000, emoji:"🛏️", category:"Home"},
+      {id:15, name:"Refrigerator", price:300000, emoji:"🧊", category:"Home"}
+    ];
+
+    let cart = [];
+
+    function renderProducts(listToRender = products) {
+      const list = document.getElementById("product-list");
+      list.innerHTML = "";
+      listToRender.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="emoji">${p.emoji}</div>
+          <h3>${p.name}</h3>
+          <p class="price">₦${p.price.toLocaleString()}</p>
+          <div class="actions">
+            <button class="buy" onclick="buyNow(${p.id})">Buy Now</button>
+            <button class="cart" onclick="addToCart(${p.id})">Add to Cart</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function showSuggestions() {
+      const query = document.getElementById("searchBox").value.toLowerCase();
+      const suggestionBox = document.getElementById("suggestions");
+      suggestionBox.innerHTML = "";
+      if(query === "") { suggestionBox.style.display = "none"; renderProducts(); return; }
+      const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+      if(filtered.length > 0) {
+        filtered.forEach(p => {
+          const div = document.createElement("div");
+          div.textContent = p.name;
+          div.onclick = () => {
+            document.getElementById("searchBox").value = p.name;
+            suggestionBox.style.display = "none";
+            renderProducts([p]);
+          };
+          suggestionBox.appendChild(div);
+        });
+        suggestionBox.style.display = "block";
+      } else {
+        suggestionBox.style.display = "none";
+        renderProducts([]);
+      }
+    }
+
+    function filterCategory(category) {
+      if(category === "All") { renderProducts(products); return; }
+      const filtered = products.filter(p => p.category === category);
+      renderProducts(filtered);
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      cart.push(product);
+      document.getElementById("cart-count").textContent = cart.length;
+      alert(`${product.name} added to cart.`);
+    }
+
+    function buyNow(id) {
+      const product = products.find(p => p.id === id);
+      const orderId = "OSS-" + Date.now();
+      const phoneNumber = "2349058562478";
+      const message = encodeURIComponent(
+        `Hello, I want to buy this product.\nProduct: ${product.name}\nPrice: ₦${product.price}\nOrder ID: ${orderId}\nI will send my payment receipt here.`
+      );
+      window.location.href = `https://wa.me/${phoneNumber}?text=${message}`;
+    }
+
+    function checkoutCart() {
+      if(cart.length === 0) { alert("Your cart is empty."); return; }
+      const orderId = "OSS-" + Date.now();
+      const phoneNumber = "2349058562478";
+      let total = 0;
+      let items = cart.map(p => { total += p.price; return `- ${p.name}: ₦${p.price}`; }).join("\n");
+      const message = encodeURIComponent(
+        `Hello, I want to checkout my cart.\nOrder ID: ${orderId}\nItems:\n${items}\nTotal: ₦${total}\nI will send my payment receipt here.`
+      );
+      window.location.href = `https://wa.me/${phoneNumber}?text=${message}`;
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("overlay");
+      sidebar.classList.toggle("open");
+      overlay.classList.toggle("show");
+    }
+
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    function showSlide(index){
+      slides.forEach((s,i)=>{ s.classList.remove("active"); if(i===index) s.classList.add("active"); });
+    }
+    setInterval(()=>{
+      currentSlide = (currentSlide+1)%slides.length;
+      showSlide(currentSlide);
+    },4000);
+
+    renderProducts();
+  </script></body>
+</html>
